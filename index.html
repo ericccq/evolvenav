@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EvolveNav: Proactive Preflection and Self-Evolving Memory for Training-Free Object Goal Navigation</title>
+<meta name="description" content="EvolveNav: a self-evolving, training-free framework for Object-Goal Navigation that combines a memory-guided preflection module with a UCB-based self-evolving rule memory." />
+<link rel="stylesheet" href="static/css/style.css" />
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1 class="title">EvolveNav: Proactive Preflection and Self-Evolving Memory<br/>for Training-Free Object Goal Navigation</h1>
+
+    <div class="authors">
+      <span class="author"><a href="#">Qi Chai</a><sup>*</sup></span>
+      <span class="author"><a href="#">Wenhao Shen</a><sup>*</sup></span>
+      <span class="author"><a href="#">Nanjie Yao</a></span>
+      <span class="author"><a href="#">Yue Xia</a></span>
+      <span class="author"><a href="#">Kaiyong Zhao</a></span>
+      <span class="author"><a href="#">Jie Ma</a></span>
+      <span class="author"><a href="#">Guosheng Lin</a></span>
+      <span class="author"><a href="#">Hao Wang</a></span>
+    </div>
+
+    <div class="note"><sup>*</sup>Equal contribution</div>
+
+    <div class="links">
+      <a class="btn btn-disabled" href="#" aria-disabled="true" title="Coming soon">
+        <span class="icon">&#128196;</span> arXiv
+      </a>
+      <a class="btn btn-disabled" href="#" aria-disabled="true" title="Coming soon">
+        <span class="icon">&#128196;</span> Paper (PDF)
+      </a>
+      <a class="btn btn-disabled" href="#" aria-disabled="true" title="Coming soon">
+        <span class="icon">&#60;/&#62;</span> Code
+      </a>
+      <a class="btn" href="#bibtex">
+        <span class="icon">&#128221;</span> BibTeX
+      </a>
+    </div>
+
+    <figure class="teaser">
+      <img src="static/images/teaser.png" alt="EvolveNav teaser figure" />
+      <figcaption>
+        <strong>Method comparison.</strong>
+        <em>Left:</em> Our agent learns from (1) past episode history to dynamically update (2) evolved rules.
+        During navigation, it adopts (3) preflection to proactively avoid rule-violating or unpromising rooms,
+        while continuously (4) evolving its rule set from trajectories.
+        <em>Right:</em> Baseline methods rely on passive reaction, leading to inefficient exploration.
+      </figcaption>
+    </figure>
+  </div>
+</header>
+
+<section id="abstract" class="section">
+  <div class="container narrow">
+    <h2>Abstract</h2>
+    <p>
+      Zero-Shot Object-Goal Navigation (ZS-OGN) requires embodied agents to explore and locate target objects without any prior training.
+      To this end, recent methods leverage foundation models. But they typically rely on static priors and lack adaptation,
+      which leads to repeated errors and costly trial and error.
+      In this paper, we propose a self-evolving ZS-OGN framework that enables continuous test-time improvement.
+      Specifically, we build an agentic rule memory by extracting actionable knowledge from past trajectories.
+      Then, we propose a retrieval strategy based on upper confidence bound, selecting effective rules by balancing
+      semantic relevance and historical success.
+      In addition, we introduce a memory-guided preflection module that forecasts potential outcomes before action,
+      reducing inefficient exploration.
+      Extensive experiments show that our method outperforms existing training-free baselines, achieving a
+      <strong>10.1% improvement in success rate</strong> with fewer unnecessary steps.
+    </p>
+  </div>
+</section>
+
+<section id="method" class="section section-alt">
+  <div class="container">
+    <h2>Method</h2>
+    <p class="lead">
+      EvolveNav transforms training-free navigation into a continuous self-improvement process.
+      The framework couples real-time spatial exploration with a self-evolving cognitive memory through two
+      tightly integrated components.
+    </p>
+
+    <figure class="method-figure">
+      <img src="static/images/method_fig-1.png" alt="EvolveNav method overview" />
+      <figcaption>
+        <strong>Method overview of EvolveNav.</strong>
+        <em>Left (Intra-Episode Preflective Exploration):</em> During test-time execution, the agent evaluates frontiers
+        (f<sub>1</sub>, f<sub>2</sub>, f<sub>3</sub>, &hellip;, f<sub>n</sub>) by retrieving top-K rules from the rule
+        bank for LLM-driven preflection. This assesses risks to determine the optimal direction, minimizing trial-and-error.
+        <em>Right (Inter-Episode Rule Self-Evolution):</em> After each episode, the framework distills new rules from the
+        trajectory history. A UCB-based algorithm updates rule weights by balancing credit assignment and exploration potential,
+        continuously refining the rule bank.
+      </figcaption>
+    </figure>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Intra-Episode Preflective Exploration</h3>
+        <p>
+          Within an episode, the agent builds a 2D occupancy map and extracts candidate frontiers.
+          Before moving, an LLM retrieves past empirical rules from the rule memory and performs <em>preflection</em>
+          to evaluate the risks of each frontier and select the optimal direction.
+          This shifts navigation from passive correction to proactive risk avoidance.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Inter-Episode Rule Self-Evolution</h3>
+        <p>
+          After each episode, the agent reviews its trajectory and distills key decisions into generalizable rules.
+          A UCB-based algorithm balances exploitation of proven rules with exploration of newly formulated ones,
+          using a momentum-smoothed expected utility &mu;<sub>r</sub> and confidence bound.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demos" class="section">
+  <div class="container">
+    <h2>Demo Videos</h2>
+    <p class="lead">
+      Qualitative navigation rollouts of EvolveNav across diverse indoor scenes.
+      Each clip shows the agent's first-person view.
+    </p>
+
+    <div class="carousel" id="demoCarousel">
+      <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous video">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="carousel-stage">
+        <div class="carousel-track">
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_01.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_02.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_03.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_04.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_05.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_06.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_07.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_08.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_09.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_10.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_11.mp4" type="video/mp4" /></video></div></div>
+          <div class="carousel-slide"><div class="slide-inner"><video muted playsinline preload="auto" controls data-replay-delay="5000"><source src="static/videos/demo_12.mp4" type="video/mp4" /></video></div></div>
+        </div>
+      </div>
+
+      <button class="carousel-arrow carousel-next" type="button" aria-label="Next video">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="carousel-counter"><span id="demoCounter">1</span> / 12</div>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="section section-alt">
+  <div class="container">
+    <h2>Quantitative Results</h2>
+    <p class="lead">
+      EvolveNav achieves state-of-the-art training-free performance on both HM3D and MP3D benchmarks,
+      surpassing prior training-free methods by 1.9% (HM3D) and 4.5% (MP3D) in Success Rate.
+    </p>
+
+    <div class="table-wrap">
+      <table class="results-table">
+        <caption>
+          <strong>Comparisons with state-of-the-art methods.</strong>
+          The table compares learning-based and training-free methods on HM3D and MP3D across <em>Success Rate</em> (SR) and
+          <em>Success weighted by Path Length</em> (SPL). Higher is better (&uarr;).
+          Gray rows are learning-based; the highlighted row is ours.
+        </caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Method</th>
+            <th rowspan="2">Venue</th>
+            <th rowspan="2">Training-free</th>
+            <th colspan="2">Instruction Interpolator</th>
+            <th colspan="2">HM3D</th>
+            <th colspan="2">MP3D</th>
+          </tr>
+          <tr>
+            <th>Vision</th>
+            <th>Language</th>
+            <th>SR &uarr;</th>
+            <th>SPL &uarr;</th>
+            <th>SR &uarr;</th>
+            <th>SPL &uarr;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="learning-based">
+            <td>RIM</td><td>IROS'23</td><td>&#10007;</td>
+            <td>&ndash;</td><td>&ndash;</td>
+            <td>57.8</td><td>27.2</td><td>50.3</td><td>17.0</td>
+          </tr>
+          <tr class="learning-based">
+            <td>OVG-Nav</td><td>RAL'24</td><td>&#10007;</td>
+            <td>&ndash;</td><td>&ndash;</td>
+            <td>&ndash;</td><td>&ndash;</td><td>35.8</td><td>12.3</td>
+          </tr>
+          <tr class="learning-based">
+            <td>VLFM</td><td>ICRA'24</td><td>&#10007;</td>
+            <td>BLIP-2</td><td>&ndash;</td>
+            <td>52.5</td><td>30.4</td><td>36.4</td><td>17.5</td>
+          </tr>
+          <tr class="learning-based">
+            <td>PIRLNav</td><td>CVPR'23</td><td>&#10007;</td>
+            <td>&ndash;</td><td>&ndash;</td>
+            <td>64.1</td><td>27.1</td><td>&ndash;</td><td>&ndash;</td>
+          </tr>
+          <tr class="learning-based">
+            <td>XGX</td><td>ICRA'24</td><td>&#10007;</td>
+            <td>&ndash;</td><td>&ndash;</td>
+            <td>72.9</td><td>35.7</td><td>&ndash;</td><td>&ndash;</td>
+          </tr>
+
+          <tr class="separator"><td colspan="9"></td></tr>
+
+          <tr>
+            <td>ZSON</td><td>NeurIPS'22</td><td>&#10003;</td>
+            <td>CLIP</td><td>&ndash;</td>
+            <td>25.5</td><td>12.6</td><td>15.3</td><td>4.8</td>
+          </tr>
+          <tr>
+            <td>L3MVN</td><td>IROS'23</td><td>&#10003;</td>
+            <td>&ndash;</td><td>RoBERTa-large</td>
+            <td>50.4</td><td>23.1</td><td>34.9</td><td>14.5</td>
+          </tr>
+          <tr>
+            <td>PixNav</td><td>ICRA'24</td><td>&#10003;</td>
+            <td>LLaMA-Adapter</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4</td>
+            <td>37.9</td><td>20.5</td><td>&ndash;</td><td>&ndash;</td>
+          </tr>
+          <tr>
+            <td>VLFM</td><td>ICRA'24</td><td>&#10003;</td>
+            <td>BLIP-2</td><td>&ndash;</td>
+            <td>50.9</td><td>23.6</td><td>32.5</td><td>15.9</td>
+          </tr>
+          <tr>
+            <td>SG-Nav</td><td>NeurIPS'24</td><td>&#10003;</td>
+            <td>LLaVA-1.6-7B</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4</td>
+            <td>54.0</td><td>24.9</td><td>40.2</td><td>16.0</td>
+          </tr>
+          <tr>
+            <td>OpenFMNav</td><td>NAACL-F'24</td><td>&#10003;</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4V</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4</td>
+            <td>54.9</td><td>24.4</td><td>37.2</td><td>15.7</td>
+          </tr>
+          <tr>
+            <td>ActPept</td><td>RAL'24</td><td>&#10003;</td>
+            <td>GraphSAGE</td><td>&ndash;</td>
+            <td>&ndash;</td><td>&ndash;</td><td>39.8</td><td>17.4</td>
+          </tr>
+          <tr>
+            <td>InstructNav</td><td>CoRL'24</td><td>&#10003;</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4V</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4</td>
+            <td>58.0</td><td>20.9</td><td>&ndash;</td><td>&ndash;</td>
+          </tr>
+          <tr>
+            <td>ApexNav</td><td>RAL'25</td><td>&#10003;</td>
+            <td>BLIP-2</td>
+            <td><img class="model-icon" src="static/images/deepseek.png" alt="" /> DeepSeek-V3</td>
+            <td>59.6</td><td>33.0</td><td>39.2</td><td>17.8</td>
+          </tr>
+          <tr>
+            <td>MFNP</td><td>ICRA'25</td><td>&#10003;</td>
+            <td><img class="model-icon" src="static/images/qwen.png" alt="" /> Qwen-VLChat-Int4</td>
+            <td><img class="model-icon" src="static/images/qwen.png" alt="" /> Qwen2-7B</td>
+            <td>58.3</td><td>26.7</td><td>41.1</td><td>15.4</td>
+          </tr>
+          <tr>
+            <td>MSGNav</td><td>CVPR'26</td><td>&#10003;</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4o</td>
+            <td><img class="model-icon" src="static/images/gpt.png" alt="" /> GPT-4o</td>
+            <td>63.0</td><td>31.4</td><td>&ndash;</td><td>&ndash;</td>
+          </tr>
+          <tr>
+            <td>ASCENT</td><td>RAL'26</td><td>&#10003;</td>
+            <td>BLIP-2</td>
+            <td><img class="model-icon" src="static/images/qwen.png" alt="" /> Qwen2.5-7B</td>
+            <td>65.4</td><td>33.5</td><td>44.5</td><td>15.5</td>
+          </tr>
+
+          <tr class="ours">
+            <td><strong>EvolveNav (Ours)</strong></td><td>&ndash;</td><td>&#10003;</td>
+            <td>BLIP-2</td>
+            <td><img class="model-icon" src="static/images/qwen.png" alt="" /> Qwen3-8B</td>
+            <td><strong>67.3</strong></td><td><strong>33.9</strong></td>
+            <td><strong>49.0</strong></td><td><strong>19.1</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="table-wrap">
+        <table class="results-table small">
+          <caption>
+            <strong>Ablation on core modules.</strong>
+            We ablate the Preflection and Memory-Evolving modules on HM3D and MP3D.
+          </caption>
+          <thead>
+            <tr>
+              <th rowspan="2">#</th>
+              <th colspan="2">Module</th>
+              <th colspan="2">HM3D</th>
+              <th colspan="2">MP3D</th>
+            </tr>
+            <tr>
+              <th>Preflection</th><th>Memory-Evolve</th>
+              <th>SR &uarr;</th><th>SPL &uarr;</th>
+              <th>SR &uarr;</th><th>SPL &uarr;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>&ndash;</td><td>&ndash;</td><td>64.7</td><td>32.5</td><td>43.9</td><td>15.8</td></tr>
+            <tr><td>2</td><td>&#10003;</td><td>&ndash;</td><td>66.5</td><td>33.5</td><td>47.4</td><td>18.4</td></tr>
+            <tr><td>3</td><td>&ndash;</td><td>&#10003;</td><td>66.7</td><td>33.6</td><td>48.3</td><td>18.7</td></tr>
+            <tr class="ours"><td>4</td><td>&#10003;</td><td>&#10003;</td>
+              <td><strong>67.3</strong></td><td><strong>33.9</strong></td>
+              <td><strong>49.0</strong></td><td><strong>19.1</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table class="results-table small">
+          <caption>
+            <strong>Ablation on LLM backbone.</strong>
+            Vision model fixed to BLIP-2. EvolveNav is robust across LLM scales.
+          </caption>
+          <thead>
+            <tr>
+              <th colspan="2">Instruction Interpolator</th>
+              <th colspan="2">HM3D</th>
+              <th colspan="2">MP3D</th>
+            </tr>
+            <tr>
+              <th>Vision</th><th>Language</th>
+              <th>SR &uarr;</th><th>SPL &uarr;</th>
+              <th>SR &uarr;</th><th>SPL &uarr;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="3">BLIP-2</td>
+                <td>Qwen2.5-7B</td><td>67.0</td><td>33.9</td><td>48.8</td><td>19.0</td></tr>
+            <tr><td>Qwen3-8B</td>
+                <td><strong>67.3</strong></td><td>33.9</td>
+                <td><strong>49.0</strong></td><td><strong>19.1</strong></td></tr>
+            <tr><td>Qwen3.5-9B</td>
+                <td>67.2</td><td><strong>34.1</strong></td>
+                <td>48.9</td><td><strong>19.2</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="qualitative" class="section">
+  <div class="container">
+    <h2>Qualitative Results</h2>
+
+    <figure class="full-figure">
+      <img src="static/images/case_study_6-1.png" alt="EvolveNav navigation case study" />
+      <figcaption>
+        <strong>Navigation process visualization of EvolveNav.</strong>
+        We show the agent's trajectory alongside its reasoning. During the episode, the agent uses Preflection
+        to evaluate frontiers and proactively avoid unpromising rooms. After the episode, EvolveNav generates a new rule
+        from the history and updates its Rule Bank, autonomously distilling long-term navigation knowledge from short-term
+        trial and error.
+      </figcaption>
+    </figure>
+
+    <figure class="full-figure">
+      <img src="static/images/case_study_compare-1.png" alt="Trajectory comparison with ASCENT" />
+      <figcaption>
+        <strong>Qualitative comparison.</strong>
+        Start points, paths, and destinations of EvolveNav and ASCENT on several MP3D scenes.
+        ASCENT's trajectory is notably more convoluted, frequently distracted by adjacent small rooms and narrow corridors.
+        In contrast, EvolveNav produces more direct, globally optimal routes.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="bibtex" class="section section-alt">
+  <div class="container narrow">
+    <h2>BibTeX</h2>
+    <pre class="bibtex"><code>@inproceedings{evolvenav2026,
+  title     = {EvolveNav: Proactive Preflection and Self-Evolving Memory
+               for Training-Free Object Goal Navigation},
+  author    = {Chai, Qi and Shen, Wenhao and Yao, Nanjie and Xia, Yue and
+               Zhao, Kaiyong and Ma, Jie and Lin, Guosheng and Wang, Hao},
+  booktitle = {Proceedings of the 34th ACM International Conference on Multimedia (MM '26)},
+  year      = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container narrow">
+    <p>
+      Page template adapted from common academic project pages.
+      Source code and arXiv release coming soon.
+    </p>
+  </div>
+</footer>
+
+<script src="static/js/main.js"></script>
+</body>
+</html>
